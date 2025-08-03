@@ -11,6 +11,20 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def download_teletext_images_and_create_pdf(start_page=100, end_page=170, channel="CT2"):
+    """
+    Downloads teletext page images from the Czech Television API for a specified channel and page range,
+    saves non-uniform images to a timestamped folder, and creates a PDF containing all valid images.
+    Args:
+        start_page (int, optional): The starting teletext page number (inclusive). Defaults to 100.
+        end_page (int, optional): The ending teletext page number (exclusive). Defaults to 170.
+        channel (str, optional): The teletext channel to download from (e.g., "CT2"). Defaults to "CT2".
+    Returns:
+        str or None: The file path to the created PDF if images were saved, otherwise None.
+    Side Effects:
+        - Creates a timestamped folder under "data" containing downloaded images and the resulting PDF.
+        - Prints status messages for skipped uniform images, failed downloads, and PDF creation.
+    """
+
     if not os.path.isdir("data"):
         os.makedirs("data")
     # Create a new folder with current timestamp
@@ -52,6 +66,22 @@ def download_teletext_images_and_create_pdf(start_page=100, end_page=170, channe
         return None
 
 def send_pdf_via_email(pdf_path, sender_email, sender_password, recipient_email, subject="Teletext PDF", body="Please find the attached PDF."):
+    """
+    Sends a PDF file as an email attachment using SMTP over SSL.
+    Args:
+        pdf_path (str): Path to the PDF file to be sent.
+        sender_email (str): Email address of the sender.
+        sender_password (str): Password for the sender's email account.
+        recipient_email (str): Email address of the recipient.
+        subject (str, optional): Subject of the email. Defaults to "Teletext PDF".
+        body (str, optional): Body text of the email. Defaults to "Please find the attached PDF.".
+    Raises:
+        ValueError: If sender_email or sender_password is not provided.
+    Side Effects:
+        Sends an email with the specified PDF attachment to the recipient.
+        Prints a confirmation message upon successful sending.
+    """
+    
     if not sender_email or not sender_password:
         raise ValueError("Sender email or password not set in environment variables.")
 
