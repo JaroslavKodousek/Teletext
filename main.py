@@ -1,6 +1,6 @@
 import requests
 import os
-from PIL import Image
+from PIL import Image, ImageOps  # <-- Add ImageOps import
 from io import BytesIO
 from datetime import datetime
 import smtplib
@@ -42,20 +42,28 @@ def download_teletext_images_and_create_pdf(start_page=100, end_page=170, channe
         
         if response.status_code == 200:
             img = Image.open(BytesIO(response.content))
+            # Convert to grayscale
+            img = img.convert("L")
+            # Apply extreme contrast (binarization)
+            threshold = 128
+            img = img.point(lambda p: 255 if p > threshold else 0)
+            # Invert colors for better readability on eBook readers
+            img = ImageOps.invert(img)
             pixels = img.getdata()
             first_pixel = pixels[0]
             if all(pixel == first_pixel for pixel in pixels):
                 print(f"Skipped uniform color image for page {page}")
             else:
                 img_path = os.path.join(folder_name_images, f"teletext_{page}.png")
-                with open(img_path, "wb") as f:
-                    f.write(response.content)
+                img.save(img_path, format="PNG")
                 saved_images.append(img_path)
         else:
             print(f"Failed to retrieve page {page}: {response.status_code}")
 
     # Create a PDF with all saved images
-    pdf_path = os.path.join(folder_name, f"{timestamp}_teletext.pdf")
+    date_str = datetime.now().strftime("%d.%m.%Y")
+    pdf_filename = f"Teletext {date_str}.pdf"
+    pdf_path = os.path.join(folder_name, pdf_filename)
     if saved_images:
         image_objs = [Image.open(img_path).convert("RGB") for img_path in saved_images]
         image_objs[0].save(pdf_path, save_all=True, append_images=image_objs[1:])
