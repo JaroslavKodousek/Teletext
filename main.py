@@ -1,6 +1,6 @@
 import requests
 import os
-from PIL import Image, ImageOps  # <-- Add ImageOps import
+from PIL import Image, ImageOps, ImageDraw, ImageFont  # <-- Add ImageDraw, ImageFont import
 from io import BytesIO
 from datetime import datetime
 import smtplib
@@ -54,8 +54,23 @@ def download_teletext_images_and_create_pdf(start_page=100, end_page=170, channe
             if all(pixel == first_pixel for pixel in pixels):
                 print(f"Skipped uniform color image for page {page}")
             else:
+                # Add extra space at the bottom for the page number
+                extra_height = 20  # Height for the page number area
+                new_img = Image.new("L", (img.width, img.height + extra_height), 255)  # White background
+                new_img.paste(img, (0, 0))
+                draw = ImageDraw.Draw(new_img)
+                try:
+                    font = ImageFont.truetype("arial.ttf", 12)  # Tiny font
+                except:
+                    font = ImageFont.load_default()
+                text = f"Page {page}"
+                bbox = font.getbbox(text)
+                text_width, text_height = bbox[2] - bbox[0], bbox[3] - bbox[1]
+                x = (new_img.width - text_width) // 2
+                y = img.height + (extra_height - text_height) // 2
+                draw.text((x, y), text, font=font, fill=0)  # Black text
                 img_path = os.path.join(folder_name_images, f"teletext_{page}.png")
-                img.save(img_path, format="PNG")
+                new_img.save(img_path, format="PNG")
                 saved_images.append(img_path)
         else:
             print(f"Failed to retrieve page {page}: {response.status_code}")
