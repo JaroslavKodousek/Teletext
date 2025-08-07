@@ -1,4 +1,4 @@
-name: Daily Teletext Manual
+name: Daily Teletext
 
 on:
   workflow_dispatch:
