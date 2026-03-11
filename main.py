@@ -6,6 +6,7 @@ from datetime import datetime
 import smtplib
 from email.message import EmailMessage
 from dotenv import load_dotenv
+import sys
 
 # Load environment variables from .env file
 load_dotenv()
@@ -69,8 +70,12 @@ def download_teletext_images_and_create_pdf(start_page=100, end_page=170, channe
                 x = (new_img.width - text_width) // 2
                 y = img.height + (extra_height - text_height) // 2
                 draw.text((x, y), text, font=font, fill=0)  # Black text
+                # Add padding around the image
+                padding = 10
+                padded_img = Image.new("L", (new_img.width + 2 * padding, new_img.height + 2 * padding), 255)  # White background
+                padded_img.paste(new_img, (padding, padding))
                 img_path = os.path.join(folder_name_images, f"teletext_{page}.png")
-                new_img.save(img_path, format="PNG")
+                padded_img.save(img_path, format="PNG")
                 saved_images.append(img_path)
         else:
             print(f"Failed to retrieve page {page}: {response.status_code}")
@@ -129,6 +134,8 @@ def main(sender_email, sender_password, recipient_email):
             send_pdf_via_email(output_path, sender_email, sender_password, recipient_email)
     
 if __name__ == "__main__":
+    download_teletext_images_and_create_pdf()
+    sys.exit(0)
     sender_email = os.environ.get("SENDER_EMAIL")
     sender_password = os.environ.get("SENDER_PASSWORD")
     recipient_email = os.environ.get("RECIPIENT_EMAIL")
