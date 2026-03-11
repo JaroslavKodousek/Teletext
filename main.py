@@ -6,7 +6,6 @@ from datetime import datetime
 import smtplib
 from email.message import EmailMessage
 from dotenv import load_dotenv
-import sys
 
 # Load environment variables from .env file
 load_dotenv()
@@ -134,8 +133,6 @@ def main(sender_email, sender_password, recipient_email):
             send_pdf_via_email(output_path, sender_email, sender_password, recipient_email)
     
 if __name__ == "__main__":
-    download_teletext_images_and_create_pdf()
-    sys.exit(0)
     sender_email = os.environ.get("SENDER_EMAIL")
     sender_password = os.environ.get("SENDER_PASSWORD")
     recipient_email = os.environ.get("RECIPIENT_EMAIL")
