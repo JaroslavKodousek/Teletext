@@ -10,20 +10,20 @@ A Python script that fetches the latest news from teletext, generates a PDF, and
 
 ## Requirements
 
-- Python 3.x
+- Python 3.13
 - Internet connection
 
 ## Usage
 
 1. Clone the repository.
-2. Install dependencies:  
-    ```bash
-    pip install -r requirements.txt
-    ```
-3. Run the script:  
-    ```bash
-    python teletext.py
-    ```
+2. Install dependencies:
+   ```bash
+   uv sync
+   ```
+3. Run the script:
+   ```bash
+   uv run main.py
+   ```
 
 ## License
 
