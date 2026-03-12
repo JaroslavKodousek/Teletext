@@ -12,7 +12,7 @@ from PIL import (
 class FirstPageGenerator:
     """Generates a greeting first page for the PDF."""
 
-    def __init__(self, greeting_text="Ahoj!", width=800, height=600):
+    def __init__(self, greeting_text="Ahoj!", width=1072, height=1448):
         self.greeting_text = greeting_text
         self.width = width
         self.height = height
@@ -47,16 +47,26 @@ class FirstPageGenerator:
         return days
 
     def _fetch_btc_price(self):
-        """Fetches current Bitcoin price in USD and 3-day trend from Binance API."""
-        url = "https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1d&limit=4"
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        """Fetches current Bitcoin price in USD and 3-day trend from Yahoo Finance."""
+        url = "https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?range=5d&interval=1d"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'})
         try:
             with urllib.request.urlopen(req) as res:
                 data = json.loads(res.read())
-                current_price = float(data[-1][4])
-                price_3d_ago = float(data[0][4])
-                trend = "↑" if current_price > price_3d_ago else "↓" if current_price < price_3d_ago else "→"
-                return current_price, trend
+                closes = data['chart']['result'][0]['indicators']['quote'][0]['close']
+                valid_closes = [c for c in closes if c is not None]
+                if len(valid_closes) >= 4:
+                    price_3d_ago = float(valid_closes[-4])
+                else:
+                    price_3d_ago = float(valid_closes[0]) if valid_closes else 0.0
+                
+                regular_price = float(data['chart']['result'][0]['meta']['regularMarketPrice'])
+                
+                if price_3d_ago:
+                    trend = "↑" if regular_price > price_3d_ago else "↓" if regular_price < price_3d_ago else "→"
+                else:
+                    trend = ""
+                return regular_price, trend
         except Exception as e:
             print(f"Error fetching BTC: {e}")
             return None, ""
@@ -108,13 +118,13 @@ class FirstPageGenerator:
     def _get_wmo_description(self, code):
         """Map simple WMO weather codes to Czech descriptions."""
         if code == 0: return "Jasno"
-        if code in [1, 2, 3]: return "Polojasno až oblačno"
+        if code in [1, 2, 3]: return "Oblačno"
         if code in [45, 48]: return "Mlha"
-        if code in [51, 53, 55, 56, 57]: return "Mrholení"
+        if code in [51, 53, 55, 56, 57]: return "Mrholí"
         if code in [61, 63, 65, 66, 67]: return "Déšť"
-        if code in [71, 73, 75, 77]: return "Sněžení"
+        if code in [71, 73, 75, 77]: return "Sněží"
         if code in [80, 81, 82]: return "Přeháňky"
-        if code in [85, 86]: return "Sněhové přeháňky"
+        if code in [85, 86]: return "Sněžení"
         if code in [95, 96, 99]: return "Bouřka"
         return "Neznámé"
 
@@ -129,10 +139,10 @@ class FirstPageGenerator:
         draw = ImageDraw.Draw(img)
 
         try:
-            font_large = ImageFont.truetype("arial.ttf", 36)
-            font_medium = ImageFont.truetype("arial.ttf", 24)
-            font_small = ImageFont.truetype("arial.ttf", 20)
-            font_tiny = ImageFont.truetype("arial.ttf", 16)
+            font_large = ImageFont.truetype("arial.ttf", 64)
+            font_medium = ImageFont.truetype("arial.ttf", 46)
+            font_small = ImageFont.truetype("arial.ttf", 38)
+            font_tiny = ImageFont.truetype("arial.ttf", 32)
         except OSError:
             font_large = ImageFont.load_default()
             font_medium = ImageFont.load_default()
@@ -143,7 +153,7 @@ class FirstPageGenerator:
         weather = self._fetch_weather()
         namesdays = self._fetch_namesdays()
 
-        y_offset = 30
+        y_offset = 120
 
         # Header - Greeting and Date
         cz_days = ["pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota", "neděle"]
@@ -158,11 +168,11 @@ class FirstPageGenerator:
 
         x = (self.width - text_width) // 2
         draw.text((x, y_offset), header_text, font=font_large, fill=0)
-        y_offset += 80
+        y_offset += 160
 
         # Weather Section
-        draw.text((40, y_offset), "Počasí v Praze (výhled na 3 dny):", font=font_large, fill=0)
-        y_offset += 60
+        draw.text((60, y_offset), "Počasí v Praze (výhled na 3 dny):", font=font_large, fill=0)
+        y_offset += 100
         if weather and 'time' in weather:
             for i in range(3):
                 date_str = weather['time'][i]
@@ -176,21 +186,21 @@ class FirstPageGenerator:
                 w_code = weather['weather_code'][i]
                 desc = self._get_wmo_description(w_code)
                 
-                text = f"{day_abbr} {date_formatted}: Min {t_min}°C, Max {t_max}°C, {desc}"
-                draw.text((60, y_offset), text, font=font_medium, fill=0)
-                y_offset += 40
+                text = f"{day_abbr}: Min {t_min}°C, Max {t_max}°C, {desc}"
+                draw.text((80, y_offset), text, font=font_medium, fill=0)
+                y_offset += 70
         else:
-            draw.text((60, y_offset), "Nepodařilo se načíst data o počasí.", font=font_medium, fill=0)
-            y_offset += 40
+            draw.text((80, y_offset), "Nepodařilo se načíst data o počasí.", font=font_medium, fill=0)
+            y_offset += 70
 
-        y_offset += 40
+        y_offset += 120
 
         # Namesdays and Markets Section
-        draw.text((40, y_offset), "Svátek slaví:", font=font_large, fill=0)
-        draw.text((400, y_offset + 6), "Trhy:", font=font_medium, fill=0) # Adjust baseline slightly for font_medium
+        draw.text((60, y_offset), "Svátek slaví:", font=font_large, fill=0)
+        draw.text((600, y_offset + 10), "Trhy:", font=font_medium, fill=0) # Adjust baseline slightly for font_medium
         
-        y_left = y_offset + 60
-        y_right = y_offset + 46 # Adjusted to bring items a bit closer to header
+        y_left = y_offset + 100
+        y_right = y_offset + 70 # Adjusted to bring items a bit closer to header
 
         market_texts = []
         currency_texts = []
@@ -224,21 +234,21 @@ class FirstPageGenerator:
             day_abbr = cz_short_days[target_date.weekday()]
             label = "Dnes" if i == 0 else "Zítra" if i == 1 else "Pozítří"
             text_nd = f"{label} ({day_abbr}): {namesdays[i]}"
-            draw.text((60, y_left), text_nd, font=font_small, fill=0)
-            y_left += 40
+            draw.text((80, y_left), text_nd, font=font_small, fill=0)
+            y_left += 70
 
         # Draw right column (Markets)
         for text in market_texts:
-            draw.text((420, y_right), text, font=font_tiny, fill=0)
-            y_right += 25
+            draw.text((620, y_right), text, font=font_small, fill=0)
+            y_right += 55
             
         # Draw right column (Currencies)
-        y_right += 10 # Added more space between blocks
-        draw.text((400, y_right), "Měny:", font=font_medium, fill=0) # Smaller header
-        y_right += 36
+        y_right += 30 # Added more space between blocks
+        draw.text((600, y_right), "Měny:", font=font_medium, fill=0) # Smaller header
+        y_right += 60
         for text in currency_texts:
-            draw.text((420, y_right), text, font=font_tiny, fill=0)
-            y_right += 25
+            draw.text((620, y_right), text, font=font_small, fill=0)
+            y_right += 55
 
         return img
 
