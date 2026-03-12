@@ -138,16 +138,29 @@ class FirstPageGenerator:
         img = Image.new("L", (self.width, self.height), 255)
         draw = ImageDraw.Draw(img)
 
-        try:
-            font_large = ImageFont.truetype("arial.ttf", 64)
-            font_medium = ImageFont.truetype("arial.ttf", 46)
-            font_small = ImageFont.truetype("arial.ttf", 38)
-            font_tiny = ImageFont.truetype("arial.ttf", 32)
-        except OSError:
-            font_large = ImageFont.load_default()
-            font_medium = ImageFont.load_default()
-            font_small = ImageFont.load_default()
-            font_tiny = ImageFont.load_default()
+        # Try finding a bold font for better Kindle readability
+        font_names = ["arialbd.ttf", "arial.ttf", "DejaVuSans-Bold.ttf", "DejaVuSans.ttf", "FreeSansBold.ttf", "LiberationSans-Bold.ttf"]
+        
+        font_large = font_medium = font_small = font_tiny = None
+        
+        for font_name in font_names:
+            try:
+                font_large = ImageFont.truetype(font_name, 84)
+                font_medium = ImageFont.truetype(font_name, 60)
+                font_small = ImageFont.truetype(font_name, 48)
+                font_tiny = ImageFont.truetype(font_name, 40)
+                break
+            except OSError:
+                continue
+
+        if font_large is None:
+            try:
+                font_large = ImageFont.load_default(size=84)
+                font_medium = ImageFont.load_default(size=60)
+                font_small = ImageFont.load_default(size=48)
+                font_tiny = ImageFont.load_default(size=40)
+            except TypeError:
+                font_large = font_medium = font_small = font_tiny = ImageFont.load_default()
 
         today = datetime.date.today()
         weather = self._fetch_weather()
@@ -168,11 +181,11 @@ class FirstPageGenerator:
 
         x = (self.width - text_width) // 2
         draw.text((x, y_offset), header_text, font=font_large, fill=0)
-        y_offset += 160
+        y_offset += 190
 
         # Weather Section
         draw.text((60, y_offset), "Počasí v Praze (výhled na 3 dny):", font=font_large, fill=0)
-        y_offset += 100
+        y_offset += 110
         if weather and 'time' in weather:
             for i in range(3):
                 date_str = weather['time'][i]
@@ -188,19 +201,19 @@ class FirstPageGenerator:
                 
                 text = f"{day_abbr}: Min {t_min}°C, Max {t_max}°C, {desc}"
                 draw.text((80, y_offset), text, font=font_medium, fill=0)
-                y_offset += 70
+                y_offset += 80
         else:
             draw.text((80, y_offset), "Nepodařilo se načíst data o počasí.", font=font_medium, fill=0)
-            y_offset += 70
+            y_offset += 80
 
-        y_offset += 120
+        y_offset += 140
 
         # Namesdays and Markets Section
         draw.text((60, y_offset), "Svátek slaví:", font=font_large, fill=0)
-        draw.text((600, y_offset + 10), "Trhy:", font=font_medium, fill=0) # Adjust baseline slightly for font_medium
+        draw.text((600, y_offset), "Trhy:", font=font_large, fill=0) # Same size as Svátek slaví
         
-        y_left = y_offset + 100
-        y_right = y_offset + 70 # Adjusted to bring items a bit closer to header
+        y_left = y_offset + 110
+        y_right = y_offset + 110 # Adjusted to bring items a bit closer to header
 
         market_texts = []
         currency_texts = []
@@ -235,20 +248,20 @@ class FirstPageGenerator:
             label = "Dnes" if i == 0 else "Zítra" if i == 1 else "Pozítří"
             text_nd = f"{label} ({day_abbr}): {namesdays[i]}"
             draw.text((80, y_left), text_nd, font=font_small, fill=0)
-            y_left += 70
+            y_left += 80
 
         # Draw right column (Markets)
         for text in market_texts:
             draw.text((620, y_right), text, font=font_small, fill=0)
-            y_right += 55
+            y_right += 70
             
         # Draw right column (Currencies)
-        y_right += 30 # Added more space between blocks
-        draw.text((600, y_right), "Měny:", font=font_medium, fill=0) # Smaller header
-        y_right += 60
+        y_right += 50 # Added more space between blocks
+        draw.text((600, y_right), "Měny:", font=font_large, fill=0)
+        y_right += 110
         for text in currency_texts:
             draw.text((620, y_right), text, font=font_small, fill=0)
-            y_right += 55
+            y_right += 70
 
         return img
 
