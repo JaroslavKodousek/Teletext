@@ -172,7 +172,7 @@ class FirstPageGenerator:
         cz_days = ["pondělí", "úterý", "středa", "čtvrtek", "pátek", "sobota", "neděle"]
         cz_short_days = ["PO", "ÚT", "ST", "ČT", "PÁ", "SO", "NE"]
         day_of_week = cz_days[today.weekday()]
-        header_text = f"{self.greeting_text} Dnes je {day_of_week} {today.strftime('%d.%m.%Y')}."
+        header_text = f"{day_of_week.upper()} {today.strftime('%d.%m.%Y')}"
         try:
             bbox = font_large.getbbox(header_text)
             text_width = bbox[2] - bbox[0]
@@ -184,7 +184,7 @@ class FirstPageGenerator:
         y_offset += 190
 
         # Weather Section
-        draw.text((60, y_offset), "Počasí v Praze (na 3 dny):", font=font_large, fill=0)
+        draw.text((60, y_offset), "Počasí v Praze:", font=font_large, fill=0)
         y_offset += 110
         if weather and 'time' in weather:
             for i in range(3):
@@ -246,9 +246,16 @@ class FirstPageGenerator:
             target_date = today + datetime.timedelta(days=i)
             day_abbr = cz_short_days[target_date.weekday()]
             label = "Dnes" if i == 0 else "Zítra" if i == 1 else "Pozítří"
-            text_nd = f"{label} ({day_abbr}): {namesdays[i]}"
-            draw.text((80, y_left), text_nd, font=font_small, fill=0)
-            y_left += 80
+            
+            # Print label
+            text_label = f"{label} ({day_abbr}):"
+            draw.text((80, y_left), text_label, font=font_small, fill=0)
+            y_left += 45
+            
+            # Print name
+            text_name = f"{namesdays[i]}"
+            draw.text((80, y_left), text_name, font=font_small, fill=0)
+            y_left += 70
 
         # Draw right column (Markets)
         for text in market_texts:
