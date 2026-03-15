@@ -222,12 +222,12 @@ class FirstPageGenerator:
         exchange_rates = self._fetch_exchange_rates()
         
         if btc_price:
-            market_texts.append(f"BTC: {btc_price:,.2f} USD {btc_trend}".replace(',', ' '))
+            market_texts.append(f"BTC: {btc_price:,.0f} USD {btc_trend}".replace(',', ' '))
         else:
             market_texts.append("BTC: Neznámé")
             
         if eunl_price:
-            market_texts.append(f"EUNL: {eunl_price:.2f} EUR {eunl_trend}")
+            market_texts.append(f"EUNL: {eunl_price:.1f} EUR {eunl_trend}")
         else:
             market_texts.append("EUNL: Neznámé")
             
