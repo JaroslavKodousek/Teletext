@@ -145,20 +145,20 @@ class FirstPageGenerator:
         
         for font_name in font_names:
             try:
-                font_large = ImageFont.truetype(font_name, 84)
-                font_medium = ImageFont.truetype(font_name, 60)
-                font_small = ImageFont.truetype(font_name, 48)
-                font_tiny = ImageFont.truetype(font_name, 40)
+                font_large = ImageFont.truetype(font_name, 60)
+                font_medium = ImageFont.truetype(font_name, 46)
+                font_small = ImageFont.truetype(font_name, 36)
+                font_tiny = ImageFont.truetype(font_name, 28)
                 break
             except OSError:
                 continue
 
         if font_large is None:
             try:
-                font_large = ImageFont.load_default(size=84)
-                font_medium = ImageFont.load_default(size=60)
-                font_small = ImageFont.load_default(size=48)
-                font_tiny = ImageFont.load_default(size=40)
+                font_large = ImageFont.load_default(size=60)
+                font_medium = ImageFont.load_default(size=46)
+                font_small = ImageFont.load_default(size=36)
+                font_tiny = ImageFont.load_default(size=28)
             except TypeError:
                 font_large = font_medium = font_small = font_tiny = ImageFont.load_default()
 
@@ -184,7 +184,7 @@ class FirstPageGenerator:
         y_offset += 190
 
         # Weather Section
-        draw.text((60, y_offset), "Počasí v Praze (výhled na 3 dny):", font=font_large, fill=0)
+        draw.text((60, y_offset), "Počasí v Praze (na 3 dny):", font=font_large, fill=0)
         y_offset += 110
         if weather and 'time' in weather:
             for i in range(3):
@@ -209,7 +209,7 @@ class FirstPageGenerator:
         y_offset += 140
 
         # Namesdays and Markets Section
-        draw.text((60, y_offset), "Svátek slaví:", font=font_large, fill=0)
+        draw.text((60, y_offset), "Svátek:", font=font_large, fill=0)
         draw.text((600, y_offset), "Trhy:", font=font_large, fill=0) # Same size as Svátek slaví
         
         y_left = y_offset + 110
