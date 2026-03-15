@@ -184,7 +184,7 @@ class FirstPageGenerator:
         y_offset += 190
 
         # Weather Section
-        draw.text((60, y_offset), "Počasí v Praze:", font=font_large, fill=0)
+        draw.text((60, y_offset), "Počasí v Praze", font=font_large, fill=0)
         y_offset += 110
         if weather and 'time' in weather:
             for i in range(3):
@@ -209,8 +209,8 @@ class FirstPageGenerator:
         y_offset += 140
 
         # Namesdays and Markets Section
-        draw.text((60, y_offset), "Svátek:", font=font_large, fill=0)
-        draw.text((600, y_offset), "Trhy:", font=font_large, fill=0) # Same size as Svátek slaví
+        draw.text((60, y_offset), "Svátek", font=font_large, fill=0)
+        draw.text((600, y_offset), "Trhy", font=font_large, fill=0) # Same size as Svátek slaví
         
         y_left = y_offset + 110
         y_right = y_offset + 110 # Adjusted to bring items a bit closer to header
@@ -264,7 +264,7 @@ class FirstPageGenerator:
             
         # Draw right column (Currencies)
         y_right += 50 # Added more space between blocks
-        draw.text((600, y_right), "Měny:", font=font_large, fill=0)
+        draw.text((600, y_right), "Měny", font=font_large, fill=0)
         y_right += 110
         for text in currency_texts:
             draw.text((620, y_right), text, font=font_small, fill=0)
