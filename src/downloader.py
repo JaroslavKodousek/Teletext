@@ -12,9 +12,10 @@ class DownloadTeletext:
 
     API_URL = "https://api-teletext.ceskatelevize.cz/services-old/teletext/picture.php"
 
-    def __init__(self, start_page=100, end_page=170, channel="CT2"):
-        self.start_page = start_page
-        self.end_page = end_page
+    def __init__(self, page_ranges=None, channel="CT2"):
+        if page_ranges is None:
+            page_ranges = [(100, 171), (600, 620)]  # Default ranges
+        self.page_ranges = page_ranges
         self.channel = channel
         self.saved_images = []
         self.pdf_path = None
@@ -46,9 +47,10 @@ class DownloadTeletext:
         return folder_name, folder_name_images
 
     def _download_images(self, folder_name_images):
-        """Downloads and processes teletext images."""
-        for page in range(self.start_page, self.end_page):
-            self._download_single_page(page, folder_name_images)
+        """Downloads and processes teletext images for all ranges."""
+        for start, end in self.page_ranges:
+            for page in range(start, end):
+                self._download_single_page(page, folder_name_images)
 
     def _download_single_page(self, page, folder_name_images):
         """Downloads and processes a single teletext page."""
