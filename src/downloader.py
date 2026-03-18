@@ -14,7 +14,7 @@ class DownloadTeletext:
 
     def __init__(self, page_ranges=None, channel="CT2"):
         if page_ranges is None:
-            page_ranges = [(100, 171), (600, 620)]  # Default ranges
+            page_ranges = [(100, 170), (600, 620)]  # Default ranges
         self.page_ranges = page_ranges
         self.channel = channel
         self.saved_images = []
