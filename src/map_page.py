@@ -81,7 +81,7 @@ class MapPageGenerator:
 
 
         # 3. Draw headers
-        header_text = "Náhoda z Česka"
+        header_text = "Křížem krážem Českem"
         try:
             bbox = font_large.getbbox(header_text)
             text_width = bbox[2] - bbox[0]
