@@ -5,6 +5,7 @@ from datetime import datetime
 from PIL import Image, ImageOps, ImageDraw, ImageFont
 
 from src.first_page import FirstPageGenerator
+from src.map_page import MapPageGenerator
 
 
 class DownloadTeletext:
@@ -128,10 +129,15 @@ class DownloadTeletext:
             first_page_gen = FirstPageGenerator()
             first_page = first_page_gen.generate_first_page().convert("RGB")
 
-            # Combine first page with downloaded images
+            # Generate map page
+            map_page_gen = MapPageGenerator()
+            map_page = map_page_gen.generate_map_page().convert("RGB")
+
+            # Combine first page, images, and map page
             image_objs = [first_page] + [
                 Image.open(img_path).convert("RGB") for img_path in self.saved_images
-            ]
+            ] + [map_page]
+            
             image_objs[0].save(pdf_path, save_all=True, append_images=image_objs[1:])
             print(f"PDF created at {pdf_path}")
             self.pdf_path = pdf_path
