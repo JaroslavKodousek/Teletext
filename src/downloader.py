@@ -125,31 +125,35 @@ class DownloadTeletext:
         pdf_filename = f"Teletext {date_str}.pdf"
         pdf_path = os.path.join(folder_name, pdf_filename)
 
+        # Generate first page with greeting
+        first_page_gen = FirstPageGenerator()
+        first_page = first_page_gen.generate_first_page().convert("RGB")
+
+        # Generate map page
+        map_page_gen = MapPageGenerator()
+        map_page = map_page_gen.generate_map_page().convert("RGB")
+
+        # Generate wikipedia pages
+        wiki_en_gen = WikiPageGenerator(lang="en")
+        wiki_en_page = wiki_en_gen.generate_wiki_page().convert("RGB")
+        
+        wiki_cs_gen = WikiPageGenerator(lang="cs")
+        wiki_cs_page = wiki_cs_gen.generate_wiki_page().convert("RGB")
+
+        # Combine first page, images, and appendix pages
+        image_objs = [first_page]
         if self.saved_images:
-            # Generate first page with greeting
-            first_page_gen = FirstPageGenerator()
-            first_page = first_page_gen.generate_first_page().convert("RGB")
-
-            # Generate map page
-            map_page_gen = MapPageGenerator()
-            map_page = map_page_gen.generate_map_page().convert("RGB")
-
-            # Generate wikipedia pages
-            wiki_en_gen = WikiPageGenerator(lang="en")
-            wiki_en_page = wiki_en_gen.generate_wiki_page().convert("RGB")
-            
-            wiki_cs_gen = WikiPageGenerator(lang="cs")
-            wiki_cs_page = wiki_cs_gen.generate_wiki_page().convert("RGB")
-
-            # Combine first page, images, and map pages
-            image_objs = [first_page] + [
+            image_objs += [
                 Image.open(img_path).convert("RGB") for img_path in self.saved_images
-            ] + [map_page, wiki_en_page, wiki_cs_page]
-            
-            image_objs[0].save(pdf_path, save_all=True, append_images=image_objs[1:])
-            print(f"PDF created at {pdf_path}")
-            self.pdf_path = pdf_path
-            return pdf_path
+            ]
+        image_objs += [map_page, wiki_en_page, wiki_cs_page]
+        
+        image_objs[0].save(pdf_path, save_all=True, append_images=image_objs[1:])
+        
+        if not self.saved_images:
+            print(f"No teletext images saved, but PDF created at {pdf_path} (first page, map, wiki).")
         else:
-            print("No images saved, PDF not created.")
-            return None
+            print(f"PDF created at {pdf_path}")
+            
+        self.pdf_path = pdf_path
+        return pdf_path
