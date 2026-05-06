@@ -12,13 +12,12 @@ from src.wiki_page import WikiPageGenerator
 class DownloadTeletext:
     """Handles downloading and processing teletext images."""
 
-    API_URL = "https://api-teletext.ceskatelevize.cz/services-old/teletext/picture.php"
+    API_URL_TEMPLATE = "https://api-teletext.ceskatelevize.cz/pages/{page}/image.webp"
 
-    def __init__(self, page_ranges=None, channel="CT2"):
+    def __init__(self, page_ranges=None):
         if page_ranges is None:
             page_ranges = [(100, 170), (600, 620)]  # Default ranges
         self.page_ranges = page_ranges
-        self.channel = channel
         self.saved_images = []
         self.pdf_path = None
 
@@ -56,17 +55,39 @@ class DownloadTeletext:
 
     def _download_single_page(self, page, folder_name_images):
         """Downloads and processes a single teletext page."""
-        url = f"{self.API_URL}?channel={self.channel}&page={page}"
-        response = requests.get(url)
+        page_str = str(page)
+        url = self.API_URL_TEMPLATE.format(page=page_str)
 
-        if response.status_code == 200:
-            self._process_image(response.content, page, folder_name_images)
+        response = self._fetch_url(url)
+        if response is None or response.status_code != 200:
+            fallback_page = f"{page_str}A"
+            fallback_url = self.API_URL_TEMPLATE.format(page=fallback_page)
+            print(f"Primary URL failed for page {page_str}; trying fallback {fallback_page}")
+            response = self._fetch_url(fallback_url)
+            page_str = fallback_page
+
+        if response is not None and response.status_code == 200:
+            self._process_image(response.content, page_str, folder_name_images)
         else:
-            print(f"Failed to retrieve page {page}: {response.status_code}")
+            status = response.status_code if response is not None else 'no-response'
+            print(f"Failed to retrieve page {page_str}: {status}")
+
+    def _fetch_url(self, url):
+        """Fetches a URL and returns the response if successful."""
+        try:
+            return requests.get(url, timeout=10)
+        except requests.RequestException as exc:
+            print(f"Request failed for {url}: {exc}")
+            return None
 
     def _process_image(self, image_data, page, folder_name_images):
         """Processes a downloaded image and saves it if it's not uniform."""
-        img = Image.open(BytesIO(image_data))
+        try:
+            img = Image.open(BytesIO(image_data))
+        except Exception as exc:
+            print(f"Failed to open image for page {page}: {exc}")
+            return
+
         img = img.convert("L")
 
         # Apply binarization
@@ -75,8 +96,8 @@ class DownloadTeletext:
         img = ImageOps.invert(img)
 
         # Check if image is uniform
-        pixels = img.get_flattened_data()
-        if all(pixel == pixels[0] for pixel in pixels):
+        pixels = list(img.getdata())
+        if pixels and all(pixel == pixels[0] for pixel in pixels):
             print(f"Skipped uniform color image for page {page}")
             return
 
